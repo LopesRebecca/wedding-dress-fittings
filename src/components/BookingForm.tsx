@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, User, Phone, MessageCircle, Sparkles, Send } from "lucide-react";
+import { Calendar, User, Phone, MessageCircle, Sparkles, Send, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,12 +16,27 @@ const serviceOptions = [
   { id: "debutante", label: "Debutante", icon: "👑" },
   { id: "madrinha", label: "Madrinha", icon: "✨" },
   { id: "daminha", label: "Daminha", icon: "🌸" },
+  { id: "outro", label: "Outro", icon: "🎀" },
+];
+
+const colorOptions = [
+  { id: "branco", label: "Branco", color: "#FFFFFF" },
+  { id: "off-white", label: "Off-White", color: "#FAF9F6" },
+  { id: "champagne", label: "Champagne", color: "#F7E7CE" },
+  { id: "rosa", label: "Rosa", color: "#FFC0CB" },
+  { id: "azul", label: "Azul", color: "#ADD8E6" },
+  { id: "vermelho", label: "Vermelho", color: "#DC143C" },
+  { id: "dourado", label: "Dourado", color: "#FFD700" },
+  { id: "outra", label: "Outra cor", color: "linear-gradient(135deg, #ff6b6b, #4ecdc4, #ffe66d)" },
 ];
 
 const BookingForm = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [service, setService] = useState("");
+  const [otherService, setOtherService] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
+  const [otherColor, setOtherColor] = useState("");
   const [date, setDate] = useState<Date>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,7 +55,7 @@ const BookingForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !phone || !service || !date) {
+    if (!name || !phone || !service || !selectedColor || !date) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos.",
@@ -49,13 +64,36 @@ const BookingForm = () => {
       return;
     }
 
+    if (service === "outro" && !otherService) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, especifique o tipo de vestido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedColor === "outra" && !otherColor) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, especifique a cor desejada.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // Simular envio
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    // Criar mensagem para WhatsApp
-    const serviceLabel = serviceOptions.find((s) => s.id === service)?.label;
+    const serviceLabel = service === "outro" 
+      ? otherService 
+      : serviceOptions.find((s) => s.id === service)?.label;
+    
+    const colorLabel = selectedColor === "outra"
+      ? otherColor
+      : colorOptions.find((c) => c.id === selectedColor)?.label;
+
     const formattedDate = format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
     
     const message = encodeURIComponent(
@@ -63,11 +101,11 @@ const BookingForm = () => {
       `👤 Nome: ${name}\n` +
       `📱 Telefone: ${phone}\n` +
       `✨ Tipo: ${serviceLabel}\n` +
+      `🎨 Cor: ${colorLabel}\n` +
       `📅 Data preferida: ${formattedDate}\n\n` +
       `Aguardo confirmação. Obrigada!`
     );
 
-    // Abrir WhatsApp (substitua pelo número real)
     const whatsappNumber = "5511999999999";
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
 
@@ -80,6 +118,9 @@ const BookingForm = () => {
     setName("");
     setPhone("");
     setService("");
+    setOtherService("");
+    setSelectedColor("");
+    setOtherColor("");
     setDate(undefined);
   };
 
@@ -152,7 +193,7 @@ const BookingForm = () => {
                 <Sparkles className="w-4 h-4 text-primary" />
                 Tipo de Vestido
               </Label>
-              <div className="grid grid-cols-2 gap-3 mt-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
                 {serviceOptions.map((option) => (
                   <button
                     key={option.id}
@@ -167,7 +208,7 @@ const BookingForm = () => {
                   >
                     <span className="text-2xl mb-1 block">{option.icon}</span>
                     <span className={cn(
-                      "font-medium",
+                      "font-medium text-sm",
                       service === option.id ? "text-primary" : "text-foreground"
                     )}>
                       {option.label}
@@ -175,6 +216,79 @@ const BookingForm = () => {
                   </button>
                 ))}
               </div>
+              
+              {/* Campo para "Outro" tipo de vestido */}
+              {service === "outro" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mt-4"
+                >
+                  <Input
+                    type="text"
+                    placeholder="Especifique o tipo de vestido..."
+                    value={otherService}
+                    onChange={(e) => setOtherService(e.target.value)}
+                    className="h-12 rounded-xl bg-background border-border focus:border-primary focus:ring-primary/20"
+                  />
+                </motion.div>
+              )}
+            </div>
+
+            {/* Cor do Vestido */}
+            <div className="mb-6">
+              <Label className="text-foreground font-medium mb-3 flex items-center gap-2">
+                <Palette className="w-4 h-4 text-primary" />
+                Cor do Vestido
+              </Label>
+              <div className="grid grid-cols-4 gap-3 mt-2">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color.id}
+                    type="button"
+                    onClick={() => setSelectedColor(color.id)}
+                    className={cn(
+                      "p-3 rounded-xl border-2 transition-all duration-300 flex flex-col items-center gap-2",
+                      selectedColor === color.id
+                        ? "border-primary shadow-soft"
+                        : "border-border bg-background hover:border-primary/50"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full border border-border/50 shadow-sm",
+                        color.id === "outra" ? "" : ""
+                      )}
+                      style={{
+                        background: color.color,
+                      }}
+                    />
+                    <span className={cn(
+                      "text-xs font-medium",
+                      selectedColor === color.id ? "text-primary" : "text-muted-foreground"
+                    )}>
+                      {color.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Campo para outra cor */}
+              {selectedColor === "outra" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mt-4"
+                >
+                  <Input
+                    type="text"
+                    placeholder="Especifique a cor desejada..."
+                    value={otherColor}
+                    onChange={(e) => setOtherColor(e.target.value)}
+                    className="h-12 rounded-xl bg-background border-border focus:border-primary focus:ring-primary/20"
+                  />
+                </motion.div>
+              )}
             </div>
 
             {/* Data */}
