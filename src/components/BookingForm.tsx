@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, User, Phone, MessageCircle, Sparkles, Send, Palette } from "lucide-react";
+import { Calendar, User, Phone, MessageCircle, Sparkles, Send, Palette, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -19,26 +21,31 @@ const serviceOptions = [
   { id: "outro", label: "Outro", icon: "🎀" },
 ];
 
-const colorOptions = [
-  { id: "branco", label: "Branco", color: "#FFFFFF" },
-  { id: "off-white", label: "Off-White", color: "#FAF9F6" },
-  { id: "champagne", label: "Champagne", color: "#F7E7CE" },
-  { id: "rosa", label: "Rosa", color: "#FFC0CB" },
-  { id: "azul", label: "Azul", color: "#ADD8E6" },
-  { id: "vermelho", label: "Vermelho", color: "#DC143C" },
-  { id: "dourado", label: "Dourado", color: "#FFD700" },
-  { id: "outra", label: "Outra cor", color: "linear-gradient(135deg, #ff6b6b, #4ecdc4, #ffe66d)" },
-];
-
 const BookingForm = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [service, setService] = useState("");
   const [otherService, setOtherService] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
+  const [color, setColor] = useState("");
   const [otherColor, setOtherColor] = useState("");
   const [date, setDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState("");
+  const [hasCompanions, setHasCompanions] = useState(false);
+  const [companionsCount, setCompanionsCount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Gera horários com intervalo de 1h (ou 2h para noiva)
+  const generateTimeSlots = () => {
+    const slots = [];
+    const interval = service === "noiva" ? 2 : 1;
+    for (let hour = 9; hour <= 18; hour += interval) {
+      const timeStr = `${hour.toString().padStart(2, "0")}:00`;
+      slots.push(timeStr);
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
 
   const formatPhoneNumber = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -55,7 +62,7 @@ const BookingForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !phone || !service || !selectedColor || !date) {
+    if (!name || !phone || !service || !color || !date || !selectedTime) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos.",
@@ -73,15 +80,6 @@ const BookingForm = () => {
       return;
     }
 
-    if (selectedColor === "outra" && !otherColor) {
-      toast({
-        title: "Campo obrigatório",
-        description: "Por favor, especifique a cor desejada.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
 
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -89,20 +87,24 @@ const BookingForm = () => {
     const serviceLabel = service === "outro" 
       ? otherService 
       : serviceOptions.find((s) => s.id === service)?.label;
-    
-    const colorLabel = selectedColor === "outra"
-      ? otherColor
-      : colorOptions.find((c) => c.id === selectedColor)?.label;
 
     const formattedDate = format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    
+    const duration = service === "noiva" ? "2 horas" : "1 hora";
+    
+    const companionsInfo = hasCompanions && companionsCount 
+      ? `👥 Acompanhantes: ${companionsCount} pessoa(s)\n` 
+      : `👥 Acompanhantes: Irei sozinha\n`;
     
     const message = encodeURIComponent(
       `Olá! Gostaria de agendar uma prova de vestido.\n\n` +
       `👤 Nome: ${name}\n` +
       `📱 Telefone: ${phone}\n` +
       `✨ Tipo: ${serviceLabel}\n` +
-      `🎨 Cor: ${colorLabel}\n` +
-      `📅 Data preferida: ${formattedDate}\n\n` +
+      `🎨 Cor: ${color}\n` +
+      companionsInfo +
+      `📅 Data preferida: ${formattedDate}\n` +
+      `🕐 Horário: ${selectedTime} (duração: ${duration})\n\n` +
       `Aguardo confirmação. Obrigada!`
     );
 
@@ -119,9 +121,12 @@ const BookingForm = () => {
     setPhone("");
     setService("");
     setOtherService("");
-    setSelectedColor("");
+    setColor("");
     setOtherColor("");
+    setHasCompanions(false);
+    setCompanionsCount("");
     setDate(undefined);
+    setSelectedTime("");
   };
 
   return (
@@ -241,87 +246,113 @@ const BookingForm = () => {
                 <Palette className="w-4 h-4 text-primary" />
                 Cor do Vestido
               </Label>
-              <div className="grid grid-cols-4 gap-3 mt-2">
-                {colorOptions.map((color) => (
-                  <button
-                    key={color.id}
-                    type="button"
-                    onClick={() => setSelectedColor(color.id)}
-                    className={cn(
-                      "p-3 rounded-xl border-2 transition-all duration-300 flex flex-col items-center gap-2",
-                      selectedColor === color.id
-                        ? "border-primary shadow-soft"
-                        : "border-border bg-background hover:border-primary/50"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "w-8 h-8 rounded-full border border-border/50 shadow-sm",
-                        color.id === "outra" ? "" : ""
-                      )}
-                      style={{
-                        background: color.color,
-                      }}
-                    />
-                    <span className={cn(
-                      "text-xs font-medium",
-                      selectedColor === color.id ? "text-primary" : "text-muted-foreground"
-                    )}>
-                      {color.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Campo para outra cor */}
-              {selectedColor === "outra" && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mt-4"
-                >
-                  <Input
+              <Input
                     type="text"
                     placeholder="Especifique a cor desejada..."
-                    value={otherColor}
-                    onChange={(e) => setOtherColor(e.target.value)}
+                    value={otherService}
+                    onChange={(e) => setOtherService(e.target.value)}
                     className="h-12 rounded-xl bg-background border-border focus:border-primary focus:ring-primary/20"
                   />
-                </motion.div>
-              )}
             </div>
 
-            {/* Data */}
+            {/* Acompanhantes */}
+            <div className="mb-6">
+              <Label className="text-foreground font-medium mb-3 flex items-center gap-2">
+                <User className="w-4 h-4 text-primary" />
+                Acompanhantes
+              </Label>
+              <div className="mt-2 space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="hasCompanions"
+                    checked={hasCompanions}
+                    onCheckedChange={(checked) => {
+                      setHasCompanions(checked as boolean);
+                      if (!checked) setCompanionsCount("");
+                    }}
+                    className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
+                  <label
+                    htmlFor="hasCompanions"
+                    className="text-sm font-medium text-foreground cursor-pointer"
+                  >
+                    Vou com acompanhante(s)
+                  </label>
+                </div>
+                
+                {hasCompanions && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                  >
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
+                      placeholder="Quantas pessoas irão com você?"
+                      value={companionsCount}
+                      onChange={(e) => setCompanionsCount(e.target.value)}
+                      className="h-12 rounded-xl bg-background border-border focus:border-primary focus:ring-primary/20"
+                    />
+                  </motion.div>
+                )}
+              </div>
+            </div>
+
+            {/* Data e Horário */}
             <div className="mb-8">
               <Label className="text-foreground font-medium mb-2 flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-primary" />
-                Data Preferida
+                Data e Horário Preferidos
               </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal h-12 rounded-xl mt-2 bg-background border-border hover:bg-blush/50",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {date ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Selecione uma data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                    locale={ptBR}
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal h-12 rounded-xl bg-background border-border hover:bg-blush/50",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : "Selecione uma data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      locale={ptBR}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                
+                <Select value={selectedTime} onValueChange={setSelectedTime}>
+                  <SelectTrigger className="h-12 rounded-xl bg-background border-border">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <SelectValue placeholder="Selecione o horário" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeSlots.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time} {service === "noiva" ? "(2h)" : "(1h)"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {service === "noiva" && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  ✨ Provas para noivas têm duração de 2 horas
+                </p>
+              )}
             </div>
 
             {/* Submit Button */}
@@ -338,7 +369,7 @@ const BookingForm = () => {
               ) : (
                 <span className="flex items-center gap-2">
                   <Send className="w-5 h-5" />
-                  Enviar pelo WhatsApp
+                  Agendar
                 </span>
               )}
             </Button>

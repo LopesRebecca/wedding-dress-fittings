@@ -33,7 +33,7 @@ const faqs = [
   },
   {
     question: "Vocês trabalham com aluguel ou venda?",
-    answer: "Trabalhamos com ambas as opções! Temos vestidos disponíveis para aluguel e também modelos exclusivos para compra. Consulte-nos sobre as opções disponíveis."
+    answer: "Trabalhamos com ambas as opções! Temos vestidos disponíveis para aluguel e também modelos exclusivos para compra. Consulte-nos sobre as opções disponíveis." //adicionar o link de vendas
   },
   {
     question: "Qual a política de cancelamento?",
@@ -55,10 +55,10 @@ const FAQ = () => {
           <span className="text-primary font-medium tracking-[0.2em] uppercase text-sm">
             Dúvidas Frequentes
           </span>
-          <h2 className="font-display text-4xl md:text-5xl font-medium text-foreground mt-4">
+          <h2 className="font-display text-4xl md:text-5xl font-medium text-white mt-4">
             Perguntas <span className="italic text-primary">Frequentes</span>
           </h2>
-          <p className="text-muted-foreground max-w-md mx-auto mt-4">
+          <p className="text-white max-w-md mx-auto mt-4">
             Tire suas dúvidas sobre nossos serviços e políticas
           </p>
         </motion.div>

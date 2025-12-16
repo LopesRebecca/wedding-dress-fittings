@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -51,6 +52,7 @@ export default {
         champagne: "hsl(var(--champagne))",
         gold: "hsl(var(--gold))",
         "rose-gold": "hsl(var(--rose-gold))",
+        white: "hsl(var(--white))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -86,10 +88,10 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-up": "fade-up 0.6s ease-out forwards",
-        "fade-in": "fade-in 0.5s ease-out forwards",
+        "fade-in": "fade-in 0.5s ease-out forwards",    
         "float": "float 6s ease-in-out infinite",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;

@@ -39,7 +39,7 @@ const Navbar = () => {
             onClick={() => scrollTo("hero")}
             className="font-display text-2xl font-medium text-foreground"
           >
-            Atelier
+            Atelier Carvalho
           </button>
 
           {/* Desktop Menu */}

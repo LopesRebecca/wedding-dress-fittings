@@ -42,7 +42,7 @@ const Services = () => {
           <span className="text-primary font-medium tracking-[0.2em] uppercase text-sm">
             Nossos Serviços
           </span>
-          <h2 className="font-display text-4xl md:text-5xl font-medium text-foreground mt-4">
+          <h2 className="font-display text-4xl md:text-5xl font-medium text-white mt-4">
             Para Cada Momento <span className="italic text-primary">Especial</span>
           </h2>
         </motion.div>
