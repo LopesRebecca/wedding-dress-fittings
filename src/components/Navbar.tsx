@@ -57,6 +57,12 @@ const Navbar = () => {
               Agendamento
             </button>
             <button
+              onClick={() => scrollTo("faq")}
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              FAQ
+            </button>
+            <button
               onClick={() => scrollTo("agendamento")}
               className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-medium hover:shadow-soft transition-all duration-300 hover:scale-105"
             >
@@ -92,6 +98,12 @@ const Navbar = () => {
                 className="text-foreground hover:text-primary transition-colors py-2 text-left"
               >
                 Agendamento
+              </button>
+              <button
+                onClick={() => scrollTo("faq")}
+                className="text-foreground hover:text-primary transition-colors py-2 text-left"
+              >
+                FAQ
               </button>
               <button
                 onClick={() => scrollTo("agendamento")}
