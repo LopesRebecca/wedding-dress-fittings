@@ -15,9 +15,9 @@ export const API_ENDPOINTS = {
   availability: '/availability',
   availabilityByDate: (date: string) => `/availability/${date}`,
   
-  // Agendamentos
-  bookings: '/bookings',
-  bookingById: (id: string) => `/bookings/${id}`,
+  // Agendamentos - Backend .NET
+  bookings: '/Appointment',
+  bookingById: (id: string) => `/Appointment/${id}`,
   
   // Configurações
   config: '/config',

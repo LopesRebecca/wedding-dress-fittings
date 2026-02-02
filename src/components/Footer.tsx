@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Heart, Instagram, MessageCircle, MapPin } from "lucide-react";
-import logoImage from "@/img/image.png"
 
 const Footer = () => {
   return (
@@ -14,15 +13,6 @@ const Footer = () => {
         >
           {/* Main Content - Side by Side */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
-            {/* Logo/Image */}
-            <div className="flex-shrink-0">
-              <img 
-                src={logoImage}
-                alt="Atelier Carvalho" 
-                className="h-16 w-auto object-contain brightness-0 invert opacity-90"
-              />
-            </div>
-
             {/* Info Section */}
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 text-center sm:text-left">
               {/* Brand */}

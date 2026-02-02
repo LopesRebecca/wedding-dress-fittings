@@ -21,9 +21,9 @@ export function FormField({ icon, label, htmlFor, children, className, hint }: F
     <div className={cn("mb-6", className)}>
       <Label 
         htmlFor={htmlFor} 
-        className="text-foreground font-medium flex items-center gap-2"
+        className="text-foreground font-medium flex items-center gap-3"
       >
-        {icon && <span className="w-4 h-4 text-primary">{icon}</span>}
+        {icon && <span className="w-4 h-4 text-primary flex-shrink-0">{icon}</span>}
         {label}
       </Label>
       <div className="mt-3">

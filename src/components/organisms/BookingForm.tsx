@@ -5,13 +5,13 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Phone, Palette, Users, MessageCircle, Send } from 'lucide-react';
+import { User, Phone, Shirt, Palette, Users, MessageCircle, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionTitle, LoadingSpinner } from '@/components/atoms';
-import { FormField, CompanionsCheckbox } from '@/components/molecules';
+import { FormField, CompanionsCheckbox, Dropdown } from '@/components/molecules';
 import { ServiceSelector } from './ServiceSelector';
 import { DateTimePicker } from './DateTimePicker';
 import { useServices } from '@/hooks/useServices';
@@ -25,6 +25,8 @@ export function BookingForm() {
   // Form state
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [dressType, setDressType] = useState('');
+  const [otherDressType, setOtherDressType] = useState('');
   const [service, setService] = useState('');
   const [otherService, setOtherService] = useState('');
   const [color, setColor] = useState('');
@@ -32,6 +34,7 @@ export function BookingForm() {
   const [selectedTime, setSelectedTime] = useState('');
   const [hasCompanions, setHasCompanions] = useState(false);
   const [companionsCount, setCompanionsCount] = useState('');
+  const [createAccount, setCreateAccount] = useState(false);
 
   // API hooks
   const { data: services = [], isLoading: isLoadingServices } = useServices();
@@ -68,19 +71,10 @@ export function BookingForm() {
 
   // Form validation
   const validateForm = (): boolean => {
-    if (!name || !phone || !service || !color || !date || !selectedTime) {
+    if (!name || !phone || !dressType || !service || !color || !date || !selectedTime) {
       toast({
         title: 'Campos obrigatórios',
         description: 'Por favor, preencha todos os campos.',
-        variant: 'destructive',
-      });
-      return false;
-    }
-
-    if (service === 'outro' && !otherService) {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'Por favor, especifique o tipo de vestido.',
         variant: 'destructive',
       });
       return false;
@@ -98,13 +92,15 @@ export function BookingForm() {
     const bookingData: BookingFormData = {
       name,
       phone,
+      dressType,
+      otherDressType: dressType,
       serviceId: service,
-      otherService: service === 'outro' ? otherService : undefined,
       color,
       date: format(date, 'yyyy-MM-dd'),
       time: selectedTime,
       hasCompanions,
       companionsCount: hasCompanions ? parseInt(companionsCount) : undefined,
+      createAccount,
     };
 
     try {
@@ -115,6 +111,8 @@ export function BookingForm() {
       const serviceLabel = service === 'outro'
         ? otherService
         : selectedService?.label;
+
+      const dressTypeLabel = dressType === 'outros' ? otherDressType : dressType;
 
       const formattedDate = format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
       const duration = selectedService?.durationMinutes
@@ -132,7 +130,8 @@ export function BookingForm() {
         `🎫 Código: ${response.id}\n` +
         `👤 Nome: ${name}\n` +
         `📱 Telefone: ${phone}\n` +
-        `✨ Tipo: ${serviceLabel}\n` +
+        `👗 Tipo de vestido: ${dressTypeLabel}\n` +
+        `✨ Serviço: ${serviceLabel}\n` +
         `🎨 Cor: ${color}\n` +
         companionsInfo +
         `📅 Data preferida: ${formattedDate}\n` +
@@ -151,6 +150,8 @@ export function BookingForm() {
       // Reset form
       setName('');
       setPhone('');
+      setDressType('');
+      setOtherDressType('');
       setService('');
       setOtherService('');
       setColor('');
@@ -158,6 +159,7 @@ export function BookingForm() {
       setSelectedTime('');
       setHasCompanions(false);
       setCompanionsCount('');
+      setCreateAccount(false);
     } catch (error) {
       toast({
         title: 'Erro ao enviar',
@@ -209,7 +211,7 @@ export function BookingForm() {
             </FormField>
 
             {/* Telefone */}
-            <FormField icon={<Phone />} label="WhatsApp" htmlFor="phone">
+            <FormField icon={<Phone />} label="WhatsApp" htmlFor="phone" className='pr-2'>
               <Input
                 id="phone"
                 type="tel"
@@ -221,26 +223,54 @@ export function BookingForm() {
               />
             </FormField>
 
-            {/* Tipo de Vestido */}
-            <ServiceSelector
-              services={services}
-              selectedService={service}
-              onSelectService={setService}
-              otherServiceValue={otherService}
-              onOtherServiceChange={setOtherService}
-              isLoading={isLoadingServices}
-            />
+            {/* Tipo de Vestido e Cor - Mesma Linha */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
+              {/* Tipo de Vestido */}
+              <div>
+                <Dropdown
+                  icon={<Shirt />}
+                  label="Tipo de Vestido"
+                  placeholder="Selecione o tipo de vestido"
+                  options={[
+                    { value: 'noiva', label: 'Noiva' },
+                    { value: 'dama', label: 'Dama de Honra' },
+                    { value: 'daminha', label: 'Daminha de Honra' },
+                    { value: 'debutante', label: 'Debutante' },
+                    { value: 'madrinha', label: 'Madrinha' },
+                    { value: 'convidada', label: 'Convidada' },
+                    { value: 'outros', label: 'Outros' },
+                  ]}
+                  value={dressType}
+                  onChange={setDressType}
+                />
+              </div>
 
-            {/* Cor do Vestido */}
-            <FormField icon={<Palette />} label="Cor do Vestido">
-              <Input
-                type="text"
-                placeholder="Especifique a cor desejada..."
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="h-12 rounded-xl bg-background border-border focus:border-primary focus:ring-primary/20"
-              />
-            </FormField>
+              {/* Cor do Vestido */}
+              <div>
+                <FormField icon={<Palette />} label="Cor do Vestido" className="mb-0">
+                  <Input
+                    type="text"
+                    placeholder="Especifique a cor desejada..."
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    className="h-12 rounded-xl bg-background border-border focus:border-primary focus:ring-primary/20"
+                  />
+                </FormField>
+              </div>
+            </div>
+
+            {/* Campo para especificar outro tipo de vestido */}
+            {dressType === 'outros' && (
+              <FormField icon={<Palette />} label="Especifique o Tipo de Vestido">
+                <Input
+                  type="text"
+                  placeholder="Digite o tipo de vestido..."
+                  value={otherDressType}
+                  onChange={(e) => setOtherDressType(e.target.value)}
+                  className="h-12 rounded-xl bg-background border-border focus:border-primary focus:ring-primary/20"
+                />
+              </FormField>
+            )}
 
             {/* Acompanhantes */}
             <FormField icon={<Users />} label="Acompanhantes">
@@ -249,6 +279,8 @@ export function BookingForm() {
                 onHasCompanionsChange={setHasCompanions}
                 companionsCount={companionsCount}
                 onCompanionsCountChange={setCompanionsCount}
+                createAccount={createAccount}
+                onCreateAccountChange={setCreateAccount}
               />
             </FormField>
 

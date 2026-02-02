@@ -29,6 +29,8 @@ export interface AvailableDate {
 export interface BookingFormData {
   name: string;
   phone: string;
+  dressType: string;
+  otherDressType?: string;
   serviceId: string;
   otherService?: string;
   color: string;
@@ -36,6 +38,7 @@ export interface BookingFormData {
   time: string;
   hasCompanions: boolean;
   companionsCount?: number;
+  createAccount: boolean;
 }
 
 // Resposta de agendamento do backend

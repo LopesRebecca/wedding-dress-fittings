@@ -14,9 +14,6 @@ import type {
   AvailabilityResponse,
 } from '@/types';
 
-// ==========================================
-// Dados Mock (para desenvolvimento sem backend)
-// ==========================================
 
 const MOCK_SERVICES: ServiceType[] = [
   { id: "noiva", label: "Noiva", icon: "💍", durationMinutes: 120, isActive: true },
@@ -168,10 +165,31 @@ export const bookingService = {
         createdAt: new Date().toISOString(),
       };
     }
-    return apiClient.post<BookingResponse, BookingFormData>(
+    
+    // Mapear dados do frontend para o formato do backend .NET
+    const backendRequest = {
+      scheduledAt: `${data.date}T${data.time}:00.000Z`,
+      customerName: data.name,
+      customerPhone: data.phone,
+      createUserAccount: data.createAccount,
+      colorDress: data.color,
+      dressCategory: data.dressType === 'outros' ? data.otherDressType : data.dressType,
+      willBringCompanion: data.hasCompanions,
+      companionCount: data.companionsCount || 0,
+    };
+    
+    const response = await apiClient.post<{ appointmentId: string }, typeof backendRequest>(
       API_ENDPOINTS.bookings,
-      data
+      backendRequest
     );
+    
+    // Mapear resposta do backend para o formato esperado pelo frontend
+    return {
+      id: response.appointmentId,
+      status: 'pending',
+      message: 'Agendamento criado com sucesso! Aguarde confirmação pelo WhatsApp.',
+      createdAt: new Date().toISOString(),
+    };
   },
 
   /**
