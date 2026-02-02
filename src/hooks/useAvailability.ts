@@ -4,6 +4,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { bookingService } from '@/services';
+import { configService, type AvailableTimeSlotsResponse } from '@/services/configService';
 import type { AvailabilityResponse } from '@/types';
 
 export const AVAILABILITY_QUERY_KEY = ['availability'];
@@ -29,11 +30,36 @@ export function useAvailability({ serviceId, month, year, enabled = true }: UseA
   });
 }
 
+/**
+ * Hook para buscar horários disponíveis para uma data específica
+ * Usa o endpoint /api/Settings/available-time-slots
+ */
 export function useTimeSlots(serviceId: string | null, date: string | null) {
   return useQuery<string[], Error>({
-    queryKey: [...AVAILABILITY_QUERY_KEY, 'timeSlots', serviceId, date],
-    queryFn: () => bookingService.getTimeSlotsForDate(serviceId!, date!),
-    enabled: !!serviceId && !!date,
+    queryKey: [...AVAILABILITY_QUERY_KEY, 'timeSlots', date],
+    queryFn: async () => {
+      const response = await configService.getAvailableTimeSlots(date!);
+      
+      // Se não está disponível, retorna array vazio
+      if (!response.isAvailable) {
+        return [];
+      }
+      
+      return response.timeSlots;
+    },
+    enabled: !!date,
+    staleTime: 1 * 60 * 1000, // 1 minuto
+  });
+}
+
+/**
+ * Hook para buscar resposta completa de disponibilidade (incluindo razão de indisponibilidade)
+ */
+export function useAvailableTimeSlots(date: string | null) {
+  return useQuery<AvailableTimeSlotsResponse, Error>({
+    queryKey: [...AVAILABILITY_QUERY_KEY, 'availableTimeSlots', date],
+    queryFn: () => configService.getAvailableTimeSlots(date!),
+    enabled: !!date,
     staleTime: 1 * 60 * 1000, // 1 minuto
   });
 }

@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Phone, Shirt, Palette, Users, MessageCircle, Send } from 'lucide-react';
+import { User, Phone, Shirt, Palette, Users, MessageCircle, Send, LogIn, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -14,20 +14,24 @@ import { SectionTitle, LoadingSpinner } from '@/components/atoms';
 import { FormField, CompanionsCheckbox, Dropdown } from '@/components/molecules';
 import { ServiceSelector } from './ServiceSelector';
 import { DateTimePicker } from './DateTimePicker';
+import { LoginModal } from './LoginModal';
 import { useServices } from '@/hooks/useServices';
 import { useTimeSlots } from '@/hooks/useAvailability';
 import { useCreateBooking } from '@/hooks/useBooking';
 import { useEstablishmentConfig } from '@/hooks/useConfig';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import type { BookingFormData } from '@/types';
 
 export function BookingForm() {
+  const { user, isAuthenticated } = useAuth();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  
   // Form state
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [dressType, setDressType] = useState('');
   const [otherDressType, setOtherDressType] = useState('');
-  const [service, setService] = useState('');
   const [otherService, setOtherService] = useState('');
   const [color, setColor] = useState('');
   const [date, setDate] = useState<Date>();
@@ -36,25 +40,43 @@ export function BookingForm() {
   const [companionsCount, setCompanionsCount] = useState('');
   const [createAccount, setCreateAccount] = useState(false);
 
+  // Preencher dados do usuário logado
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      if (user.phone) {
+        setPhone(user.phone);
+      }
+    }
+  }, [user]);
+
   // API hooks
   const { data: services = [], isLoading: isLoadingServices } = useServices();
   const { data: config } = useEstablishmentConfig();
   const createBookingMutation = useCreateBooking();
 
-  // Time slots - busca quando tem serviço e data selecionados
+  // Mapeia o tipo de vestido para o serviço correspondente (para duração)
+  const serviceId = dressType === 'noiva' ? 'noiva' 
+    : dressType === 'debutante' ? 'debutante'
+    : dressType === 'madrinha' ? 'madrinha'
+    : dressType === 'daminha' ? 'daminha'
+    : dressType ? 'outro' 
+    : null;
+    
+  // Time slots - busca do endpoint /api/Settings/available-time-slots
   const dateStr = date ? format(date, 'yyyy-MM-dd') : null;
   const { data: timeSlots = [], isLoading: isLoadingTimeSlots } = useTimeSlots(
-    service || null,
+    serviceId, // Mantido para compatibilidade, mas não é mais usado na query
     dateStr
   );
 
-  // Get selected service info
-  const selectedService = services.find(s => s.id === service);
+  // Get selected service info based on dress type
+  const selectedService = services.find(s => s.id === serviceId);
 
-  // Reset time when service or date changes
+  // Reset time when dress type or date changes
   useEffect(() => {
     setSelectedTime('');
-  }, [service, date]);
+  }, [dressType, date]);
 
   // Phone formatting
   const formatPhoneNumber = (value: string) => {
@@ -71,7 +93,7 @@ export function BookingForm() {
 
   // Form validation
   const validateForm = (): boolean => {
-    if (!name || !phone || !dressType || !service || !color || !date || !selectedTime) {
+    if (!name || !phone || !dressType || !color || !date || !selectedTime) {
       toast({
         title: 'Campos obrigatórios',
         description: 'Por favor, preencha todos os campos.',
@@ -94,13 +116,14 @@ export function BookingForm() {
       phone,
       dressType,
       otherDressType: dressType,
-      serviceId: service,
+      serviceId: serviceId || 'outro',
       color,
       date: format(date, 'yyyy-MM-dd'),
       time: selectedTime,
       hasCompanions,
       companionsCount: hasCompanions ? parseInt(companionsCount) : undefined,
       createAccount,
+      userId: user?.id, // Vincula ao usuário logado
     };
 
     try {
@@ -108,7 +131,7 @@ export function BookingForm() {
       const response = await createBookingMutation.mutateAsync(bookingData);
 
       // Monta mensagem para WhatsApp
-      const serviceLabel = service === 'outro'
+      const serviceLabel = serviceId === 'outro'
         ? otherService
         : selectedService?.label;
 
@@ -152,7 +175,6 @@ export function BookingForm() {
       setPhone('');
       setDressType('');
       setOtherDressType('');
-      setService('');
       setOtherService('');
       setColor('');
       setDate(undefined);
@@ -198,6 +220,44 @@ export function BookingForm() {
             onSubmit={handleSubmit}
             className="bg-card rounded-3xl p-8 md:p-10 shadow-card border border-border/50"
           >
+            {/* Status de Login */}
+            {isAuthenticated ? (
+              <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-200 flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-green-800">
+                    Agendando como {user?.name}
+                  </p>
+                  <p className="text-xs text-green-600">
+                    Seu agendamento será salvo na sua conta
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-6 p-4 rounded-xl bg-muted/50 border border-border flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <LogIn className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      Faça login para salvar seus agendamentos
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Acesse seu histórico e acompanhe suas provas
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="rounded-lg shrink-0"
+                >
+                  Entrar
+                </Button>
+              </div>
+            )}
+
             {/* Nome */}
             <FormField icon={<User />} label="Seu Nome" htmlFor="name">
               <Input
@@ -281,6 +341,7 @@ export function BookingForm() {
                 onCompanionsCountChange={setCompanionsCount}
                 createAccount={createAccount}
                 onCreateAccountChange={setCreateAccount}
+                isAuthenticated={isAuthenticated}
               />
             </FormField>
 
@@ -327,6 +388,12 @@ export function BookingForm() {
           </motion.form>
         </div>
       </div>
+      
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
     </section>
   );
 }

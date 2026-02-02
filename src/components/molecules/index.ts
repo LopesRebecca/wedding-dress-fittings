@@ -5,3 +5,4 @@ export { TimeSlotPicker } from './TimeSlotPicker';
 export { DatePicker } from './DatePicker';
 export { CompanionsCheckbox } from './CompanionsCheckbox';
 export { Dropdown } from './Dropdown';
+export { UserMenu } from './UserMenu';

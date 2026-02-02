@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserMenu } from "@/components/molecules";
+import { LoginModal } from "@/components/organisms";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,6 +73,19 @@ const Navbar = () => {
             >
               Agendar Prova
             </button>
+            
+            {/* Login / User Menu */}
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+              >
+                <LogIn className="w-5 h-5" />
+                <span>Entrar</span>
+              </button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -111,10 +129,34 @@ const Navbar = () => {
               >
                 Agendar Prova
               </button>
+              
+              {/* Login / User Menu Mobile */}
+              {isAuthenticated ? (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <UserMenu />
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsLoginModalOpen(true);
+                  }}
+                  className="flex items-center gap-2 text-foreground hover:text-primary transition-colors py-2 mt-2"
+                >
+                  <LogIn className="w-5 h-5" />
+                  <span>Entrar na conta</span>
+                </button>
+              )}
             </div>
           </motion.div>
         )}
       </div>
+      
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
     </motion.nav>
   );
 };

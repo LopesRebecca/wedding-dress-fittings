@@ -7,6 +7,11 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:30
 
 // Endpoints da API
 export const API_ENDPOINTS = {
+  // Autenticação
+  login: '/user/login',
+  register: '/user/register',
+  profile: '/user/me',
+  
   // Serviços
   services: '/services',
   serviceById: (id: string) => `/services/${id}`,
@@ -15,9 +20,16 @@ export const API_ENDPOINTS = {
   availability: '/availability',
   availabilityByDate: (date: string) => `/availability/${date}`,
   
+  // Settings - Configurações de disponibilidade (Backend .NET)
+  settings: {
+    availableTimeSlots: '/Settings/available-time-slots',
+    availability: '/Settings/availability',
+  },
+  
   // Agendamentos - Backend .NET
   bookings: '/Appointment',
   bookingById: (id: string) => `/Appointment/${id}`,
+  userBookings: '/Appointment/user',
   
   // Configurações
   config: '/config',

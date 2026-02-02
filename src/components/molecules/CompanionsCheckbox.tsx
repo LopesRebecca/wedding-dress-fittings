@@ -14,6 +14,7 @@ interface CompanionsCheckboxProps {
   onCompanionsCountChange: (value: string) => void;
   createAccount: boolean;
   onCreateAccountChange: (value: boolean) => void;
+  isAuthenticated?: boolean;
 }
 
 export function CompanionsCheckbox({
@@ -23,6 +24,7 @@ export function CompanionsCheckbox({
   onCompanionsCountChange,
   createAccount,
   onCreateAccountChange,
+  isAuthenticated = false,
 }: CompanionsCheckboxProps) {
   return (
     <div className="space-y-4">
@@ -46,21 +48,23 @@ export function CompanionsCheckbox({
           </label>
         </div>
 
-        {/* Checkbox de Criar Conta */}
-        <div className="flex items-center space-x-3">
-          <Checkbox
-            id="createAccount"
-            checked={createAccount}
-            onCheckedChange={(checked) => onCreateAccountChange(checked as boolean)}
-            className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-          />
-          <label
-            htmlFor="createAccount"
-            className="text-sm font-medium text-foreground cursor-pointer"
-          >
-            Quero criar uma conta
-          </label>
-        </div>
+        {/* Checkbox de Criar Conta - Oculto se já estiver logado */}
+        {!isAuthenticated && (
+          <div className="flex items-center space-x-3">
+            <Checkbox
+              id="createAccount"
+              checked={createAccount}
+              onCheckedChange={(checked) => onCreateAccountChange(checked as boolean)}
+              className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+            <label
+              htmlFor="createAccount"
+              className="text-sm font-medium text-foreground cursor-pointer"
+            >
+              Quero criar uma conta
+            </label>
+          </div>
+        )}
       </div>
 
       {hasCompanions && (

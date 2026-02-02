@@ -2,6 +2,9 @@
 // Types & Interfaces para a aplicação
 // ==========================================
 
+// Re-exportar tipos de autenticação
+export * from './auth';
+
 // Tipo de serviço/vestido
 export interface ServiceType {
   id: string;
@@ -39,6 +42,7 @@ export interface BookingFormData {
   hasCompanions: boolean;
   companionsCount?: number;
   createAccount: boolean;
+  userId?: string; // ID do usuário logado
 }
 
 // Resposta de agendamento do backend

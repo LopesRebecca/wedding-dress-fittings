@@ -32,7 +32,7 @@ export function Dropdown({
   return (
     <div className="w-full relative">
       {/* Label */}
-      <label className="block mb-3 text-foreground font-medium flex items-center gap-3">
+      <label className="mb-3 text-foreground font-medium flex items-center gap-3">
         {icon && <span className="w-4 h-4 text-primary flex-shrink-0">{icon}</span>}
         {label}
       </label>
